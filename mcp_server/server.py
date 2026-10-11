@@ -35,6 +35,7 @@ from pathlib import Path
 
 import uvicorn
 from mcp.server.mcpserver import MCPServer
+from mcp.server.transport_security import TransportSecuritySettings
 from starlette.applications import Starlette
 from starlette.responses import JSONResponse
 from starlette.routing import Mount, Route
@@ -247,10 +248,23 @@ async def health(request):
 
 
 def make_app() -> Starlette:
-    return Starlette(routes=[
-        Mount("/mcp", app=mcp.sse_app()),
-        Route("/health", endpoint=health),
-    ])
+    from contextlib import asynccontextmanager
+
+    @asynccontextmanager
+    async def lifespan(app):
+        async with mcp.session_manager.run():
+            yield
+
+    return Starlette(
+        routes=[
+            Mount("/mcp", app=mcp.streamable_http_app(
+                stateless_http=True,
+                transport_security=TransportSecuritySettings(enable_dns_rebinding_protection=False),
+            )),
+            Route("/health", endpoint=health),
+        ],
+        lifespan=lifespan,
+    )
 
 
 if __name__ == "__main__":

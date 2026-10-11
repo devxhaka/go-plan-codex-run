@@ -88,7 +88,7 @@ cat <<EOF
  Tempel URL ini ke ChatGPT web (akun Go)
  sebagai custom MCP connector:
 
-   $URL/mcp/sse
+   $URL/mcp/mcp
 
  Untuk berhenti: scripts/stop-linux.sh
 ==============================================
